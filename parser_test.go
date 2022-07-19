@@ -192,10 +192,33 @@ func TestParser(t *testing.T) {
 	}
 ]`,
 		},
-		// {
-		// 	hal:    "fr-CA, fr;q=0.8,  en-US;q=0.6,en;q=0.4,    *;q=0.1",
-		// 	expect: `[{"code":"fr","region":"CA","quality":1.0},{"code":"fr","quality":0.8},{"code":"en","region":"US","quality":0.6},{"code":"en","quality":0.4},{"code":"*","quality":0.1}]`,
-		// },
+		{
+			hal: "fr-CA, fr;q=0.8,  en-US;q=0.6,en;q=0.4,    *;q=0.1",
+			expect: `[
+	{
+		"code": "fr",
+		"region": "CA",
+		"quality": 1.0
+	},
+	{
+		"code": "fr",
+		"quality": 0.8
+	},
+	{
+		"code": "en",
+		"region": "US",
+		"quality": 0.6
+	},
+	{
+		"code": "en",
+		"quality": 0.4
+	},
+	{
+		"code": "*",
+		"quality": 0.1
+	}
+]`,
+		},
 		// {
 		// 	hal:    "fr-CA,fr;q=0.2,en-US;q=0.6,en;q=0.4,*;q=0.5",
 		// 	expect: `[{"code":"fr","region":"CA","quality":1.0},{"code":"en","region":"US","quality":0.6},{"code":"*","quality":0.5},{"code":"en","quality":0.4},{"code":"fr","quality":0.2}]`,
