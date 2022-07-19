@@ -121,7 +121,23 @@ func (vec *Vector) parseNode(depth, offset int, qlo, qhi int, root *vector.Node)
 			vec.PutNode(j, child)
 			offset = qhi + 1
 		case 2:
-			// ...
+			child, j := vec.GetChildWT(node, depth+1, vector.TypeStr)
+			child.Key().Init(bKV, offsetCode, lenCode)
+			child.Value().Init(vec.Src(), offset, d0)
+			vec.PutNode(j, child)
+			offset = d0 + 1
+
+			child, j = vec.GetChildWT(node, depth+1, vector.TypeStr)
+			child.Key().Init(bKV, offsetScript, lenScript)
+			child.Value().Init(vec.Src(), offset, d1-offset)
+			vec.PutNode(j, child)
+			offset = d1 + 1
+
+			child, j = vec.GetChildWT(node, depth+1, vector.TypeStr)
+			child.Key().Init(bKV, offsetRegion, lenRegion)
+			child.Value().Init(vec.Src(), offset, qlo-offset)
+			vec.PutNode(j, child)
+			offset = qhi + 1
 		}
 
 		// cl := qlo
