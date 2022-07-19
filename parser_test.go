@@ -141,10 +141,20 @@ func TestParser(t *testing.T) {
 	}
 ]`,
 		},
-		// {
-		// 	hal:    "fr-CA,*;q=0.8",
-		// 	expect: `[{"code":"fr","region":"CA","quality":1.0},{"code":"*","quality":0.8}]`,
-		// },
+		{
+			hal: "fr-CA,*;q=0.8",
+			expect: `[
+	{
+		"code": "fr",
+		"region": "CA",
+		"quality": 1.0
+	},
+	{
+		"code": "*",
+		"quality": 0.8
+	}
+]`,
+		},
 		// {
 		// 	hal:    "fr-150",
 		// 	expect: `[{"code":"fr","region":"150","quality":1.0}]`,
