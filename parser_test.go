@@ -98,18 +98,35 @@ func TestParser(t *testing.T) {
 	}
 ]`,
 		},
-		// {
-		// 	hal:    "en-GB;q=0.8",
-		// 	expect: `[{"code":"en","region":"GB","quality":0.8}]`,
-		// },
-		// {
-		// 	hal:    "en;q=0.8",
-		// 	expect: `[{"code":"en","quality":0.8}]`,
-		// },
-		// {
-		// 	hal:    "az-AZ",
-		// 	expect: `[{"code":"az","region":"AZ","quality":1.0}]`,
-		// },
+		{
+			hal: "en-GB;q=0.8",
+			expect: `[
+	{
+		"code": "en",
+		"region": "GB",
+		"quality": 0.8
+	}
+]`,
+		},
+		{
+			hal: "en;q=0.8",
+			expect: `[
+	{
+		"code": "en",
+		"quality": 0.8
+	}
+]`,
+		},
+		{
+			hal: "az-AZ",
+			expect: `[
+	{
+		"code": "az",
+		"region": "AZ",
+		"quality": 1.0
+	}
+]`,
+		},
 		// {
 		// 	hal:    "fr-CA,fr;q=0.8",
 		// 	expect: `[{"code":"fr","region":"CA","quality":1.0},{"code":"fr","quality":0.8}]`,

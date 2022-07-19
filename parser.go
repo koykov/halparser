@@ -163,7 +163,7 @@ func (vec *Vector) parseNode(depth, offset int, qlo, qhi int, root *vector.Node)
 		child, j := vec.GetChildWT(node, depth+1, vector.TypeNum)
 		child.Key().Init(bKV, offsetQuality, lenQuality)
 		if qlo > 0 && qhi > qlo {
-			child.Value().Init(vec.Src(), qlo, qhi)
+			child.Value().Init(vec.Src(), qlo+3, qhi-(qlo+3)) // +3 means length of ";q="
 		} else {
 			child.Value().Init(bKV, offsetDefQT, lenDefQT)
 		}
