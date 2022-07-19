@@ -26,7 +26,6 @@ var (
 	bFmt   = []byte(" \t")
 	bQt    = []byte(";q=")
 	bComma = []byte(",")
-	bSep   = []byte("-,")
 	bKV    = []byte("codescriptregionquality1.0")
 
 	ErrTooManyParts = errors.New("entry contains too many parts")
@@ -70,8 +69,7 @@ func (vec *Vector) parseGeneric(depth, offset int, node *vector.Node) (int, erro
 			return offset, vector.ErrUnexpEOF
 		}
 
-		var nlo, nhi int
-		nlo = offset
+		var nhi int
 		if nhi = bytealg.IndexByteAtLR(vec.Src(), ',', offset); nhi == -1 {
 			nhi = vec.SrcLen()
 		}
@@ -82,7 +80,7 @@ func (vec *Vector) parseGeneric(depth, offset int, node *vector.Node) (int, erro
 		} else if qhi = bytealg.IndexAt(vec.Src(), bComma, qlo+3); qhi == -1 {
 			qhi = nhi
 		}
-		if offset, err = vec.parseNode(depth, offset, nlo, nhi, qlo, qhi, node); err != nil {
+		if offset, err = vec.parseNode(depth, offset, qlo, qhi, node); err != nil {
 			return offset, err
 		}
 		if offset, eof = vec.skipFmt(offset); eof {
@@ -98,7 +96,7 @@ func (vec *Vector) parseGeneric(depth, offset int, node *vector.Node) (int, erro
 	return offset, nil
 }
 
-func (vec *Vector) parseNode(depth, offset int, nlo, nhi, qlo, qhi int, root *vector.Node) (int, error) {
+func (vec *Vector) parseNode(depth, offset int, qlo, qhi int, root *vector.Node) (int, error) {
 	var eof bool
 	if qhi < qlo {
 		qhi = qlo
@@ -114,7 +112,7 @@ func (vec *Vector) parseNode(depth, offset int, nlo, nhi, qlo, qhi int, root *ve
 		if p == -1 {
 			p = vec.SrcLen()
 		}
-		dc, d0, d1, _ := vec.indexDash(offset, qlo)
+		dc, d0, d1 := vec.indexDash(offset, qlo)
 		if dc > 2 {
 			return offset, ErrTooManyParts
 		}
@@ -185,12 +183,8 @@ loop:
 	goto loop
 }
 
-func (vec *Vector) indexDash(lo, hi int) (dc, d0, d1, cp int) {
+func (vec *Vector) indexDash(lo, hi int) (dc, d0, d1 int) {
 loop:
-	// if vec.SrcAt(lo) == ',' {
-	// 	cp = lo
-	// 	return
-	// }
 	if vec.SrcAt(lo) == '-' {
 		dc++
 		if dc == 1 {
