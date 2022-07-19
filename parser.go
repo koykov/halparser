@@ -23,10 +23,9 @@ const (
 
 var (
 	// Byte constants.
-	bFmt   = []byte(" \t")
-	bQt    = []byte(";q=")
-	bComma = []byte(",")
-	bKV    = []byte("codescriptregionquality1.0")
+	bFmt = []byte(" \t")
+	bQt  = []byte(";q=")
+	bKV  = []byte("codescriptregionquality1.0")
 
 	ErrTooManyParts = errors.New("entry contains too many parts")
 )
@@ -77,7 +76,8 @@ func (vec *Vector) parseGeneric(depth, offset int, node *vector.Node) (int, erro
 		var qlo, qhi int
 		if qlo = bytealg.IndexAt(vec.Src()[:nhi], bQt, offset); qlo == -1 {
 			qlo = nhi
-		} else if qhi = bytealg.IndexAt(vec.Src(), bComma, qlo+3); qhi == -1 {
+			// } else if qhi = bytealg.IndexAt(vec.Src()[:nhi], bComma, qlo+3); qhi == -1 {
+		} else {
 			qhi = nhi
 		}
 		if offset, err = vec.parseNode(depth, offset, qlo, qhi, node); err != nil {
@@ -124,13 +124,13 @@ func (vec *Vector) parseNode(depth, offset int, qlo, qhi int, root *vector.Node)
 			offset = qlo
 		case 1:
 			// Add code and region.
-			vec.addStrNode(node, depth+1, offsetCode, lenCode, offset, d0)
+			vec.addStrNode(node, depth+1, offsetCode, lenCode, offset, d0-offset)
 			offset = d0 + 1
 			vec.addStrNode(node, depth+1, offsetRegion, lenRegion, offset, qlo-offset)
 			offset = qlo
 		case 2:
 			// Add code, script and region.
-			vec.addStrNode(node, depth+1, offsetCode, lenCode, offset, d0)
+			vec.addStrNode(node, depth+1, offsetCode, lenCode, offset, d0-offset)
 			offset = d0 + 1
 			vec.addStrNode(node, depth+1, offsetScript, lenScript, offset, d1-offset)
 			offset = d1 + 1
