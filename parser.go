@@ -69,14 +69,27 @@ func (vec *Vector) parseGeneric(depth, offset int, node *vector.Node) (int, erro
 		if offset, eof = vec.skipFmt(offset); eof {
 			return offset, vector.ErrUnexpEOF
 		}
-		var qlo, qhi int
-		if qlo = bytealg.IndexAt(vec.Src(), bQt, offset); qlo == -1 {
-			qlo = vec.SrcLen()
-		} else if qhi = bytealg.IndexAt(vec.Src(), bComma, qlo+3); qhi == -1 {
-			qhi = vec.SrcLen()
+
+		var nlo, nhi int
+		nlo = offset
+		if nhi = bytealg.IndexByteAtLR(vec.Src(), ',', offset); nhi == -1 {
+			nhi = vec.SrcLen()
 		}
-		if offset, err = vec.parseNode(depth, offset, qlo, qhi, node); err != nil {
+
+		var qlo, qhi int
+		if qlo = bytealg.IndexAt(vec.Src()[:nhi], bQt, offset); qlo == -1 {
+			qlo = nhi
+		} else if qhi = bytealg.IndexAt(vec.Src(), bComma, qlo+3); qhi == -1 {
+			qhi = nhi
+		}
+		if offset, err = vec.parseNode(depth, offset, nlo, nhi, qlo, qhi, node); err != nil {
 			return offset, err
+		}
+		if offset, eof = vec.skipFmt(offset); eof {
+			return offset, nil
+		}
+		if vec.SrcAt(offset) == ',' {
+			offset++
 		}
 		if offset, eof = vec.skipFmt(offset); eof {
 			return offset, nil
@@ -85,7 +98,7 @@ func (vec *Vector) parseGeneric(depth, offset int, node *vector.Node) (int, erro
 	return offset, nil
 }
 
-func (vec *Vector) parseNode(depth, offset int, qlo, qhi int, root *vector.Node) (int, error) {
+func (vec *Vector) parseNode(depth, offset int, nlo, nhi, qlo, qhi int, root *vector.Node) (int, error) {
 	var eof bool
 	if qhi < qlo {
 		qhi = qlo
@@ -97,37 +110,34 @@ func (vec *Vector) parseNode(depth, offset int, qlo, qhi int, root *vector.Node)
 
 		node, i := vec.GetChildWT(root, depth, vector.TypeObj)
 		node.SetOffset(vec.Index.Len(depth + 1))
-		p := bytealg.IndexAnyAt(vec.Src(), bSep, offset)
+		p := bytealg.IndexByteAtLR(vec.Src(), '-', offset)
 		if p == -1 {
 			p = vec.SrcLen()
 		}
-		dc, d0, d1, cp := vec.indexDash(offset, qlo)
+		dc, d0, d1, _ := vec.indexDash(offset, qlo)
 		if dc > 2 {
 			return offset, ErrTooManyParts
-		}
-		if cp == 0 {
-			cp = qlo
 		}
 
 		switch dc {
 		case 0:
 			// Add only code.
-			vec.addStrNode(node, depth+1, offsetCode, lenCode, offset, cp-offset)
-			offset = cp
+			vec.addStrNode(node, depth+1, offsetCode, lenCode, offset, qlo-offset)
+			offset = qlo
 		case 1:
 			// Add code and region.
 			vec.addStrNode(node, depth+1, offsetCode, lenCode, offset, d0)
 			offset = d0 + 1
-			vec.addStrNode(node, depth+1, offsetRegion, lenRegion, offset, cp-offset)
-			offset = cp
+			vec.addStrNode(node, depth+1, offsetRegion, lenRegion, offset, qlo-offset)
+			offset = qlo
 		case 2:
 			// Add code, script and region.
 			vec.addStrNode(node, depth+1, offsetCode, lenCode, offset, d0)
 			offset = d0 + 1
 			vec.addStrNode(node, depth+1, offsetScript, lenScript, offset, d1-offset)
 			offset = d1 + 1
-			vec.addStrNode(node, depth+1, offsetRegion, lenRegion, offset, cp-offset)
-			offset = cp
+			vec.addStrNode(node, depth+1, offsetRegion, lenRegion, offset, qlo-offset)
+			offset = qlo
 		}
 
 		// Write quality.
@@ -148,9 +158,6 @@ func (vec *Vector) parseNode(depth, offset int, qlo, qhi int, root *vector.Node)
 		if offset == qlo {
 			offset = qhi
 			break
-		}
-		if vec.SrcAt(offset) == ',' {
-			offset++
 		}
 		if offset, eof = vec.skipFmt(offset); eof {
 			return offset, nil
@@ -180,10 +187,10 @@ loop:
 
 func (vec *Vector) indexDash(lo, hi int) (dc, d0, d1, cp int) {
 loop:
-	if vec.SrcAt(lo) == ',' {
-		cp = lo
-		return
-	}
+	// if vec.SrcAt(lo) == ',' {
+	// 	cp = lo
+	// 	return
+	// }
 	if vec.SrcAt(lo) == '-' {
 		dc++
 		if dc == 1 {

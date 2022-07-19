@@ -133,7 +133,7 @@ func TestParser(t *testing.T) {
 	{
 		"code": "fr",
 		"region": "CA",
-		"quality": 0.8
+		"quality": 1.0
 	},
 	{
 		"code": "fr",
