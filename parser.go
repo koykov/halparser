@@ -86,40 +86,48 @@ func (vec *Vector) parseGeneric(depth, offset int, node *vector.Node) (int, erro
 }
 
 func (vec *Vector) parseNode(depth, offset int, qlo, qhi int, root *vector.Node) (int, error) {
+	var eof bool
 	if qhi < qlo {
 		qhi = qlo
 	}
 	for {
+		if offset == qlo {
+			break
+		}
+
 		node, i := vec.GetChildWT(root, depth, vector.TypeObj)
 		node.SetOffset(vec.Index.Len(depth + 1))
 		p := bytealg.IndexAnyAt(vec.Src(), bSep, offset)
 		if p == -1 {
 			p = vec.SrcLen()
 		}
-		dc, d0, d1 := vec.indexDash(offset, qlo)
+		dc, d0, d1, cp := vec.indexDash(offset, qlo)
 		if dc > 2 {
 			return offset, ErrTooManyParts
+		}
+		if cp == 0 {
+			cp = qlo
 		}
 
 		switch dc {
 		case 0:
 			// Add only code.
-			vec.addStrNode(node, depth+1, offsetCode, lenCode, offset, qlo-offset)
-			offset = qhi + 1
+			vec.addStrNode(node, depth+1, offsetCode, lenCode, offset, cp-offset)
+			offset = cp
 		case 1:
 			// Add code and region.
 			vec.addStrNode(node, depth+1, offsetCode, lenCode, offset, d0)
 			offset = d0 + 1
-			vec.addStrNode(node, depth+1, offsetRegion, lenRegion, offset, qlo-offset)
-			offset = qhi + 1
+			vec.addStrNode(node, depth+1, offsetRegion, lenRegion, offset, cp-offset)
+			offset = cp
 		case 2:
 			// Add code, script and region.
 			vec.addStrNode(node, depth+1, offsetCode, lenCode, offset, d0)
 			offset = d0 + 1
 			vec.addStrNode(node, depth+1, offsetScript, lenScript, offset, d1-offset)
 			offset = d1 + 1
-			vec.addStrNode(node, depth+1, offsetRegion, lenRegion, offset, qlo-offset)
-			offset = qhi + 1
+			vec.addStrNode(node, depth+1, offsetRegion, lenRegion, offset, cp-offset)
+			offset = cp
 		}
 
 		// Write quality.
@@ -134,7 +142,19 @@ func (vec *Vector) parseNode(depth, offset int, qlo, qhi int, root *vector.Node)
 
 		vec.PutNode(i, node)
 
-		break
+		if offset, eof = vec.skipFmt(offset); eof {
+			return offset, nil
+		}
+		if offset == qlo {
+			offset = qhi
+			break
+		}
+		if vec.SrcAt(offset) == ',' {
+			offset++
+		}
+		if offset, eof = vec.skipFmt(offset); eof {
+			return offset, nil
+		}
 	}
 	return offset, nil
 }
@@ -158,8 +178,12 @@ loop:
 	goto loop
 }
 
-func (vec *Vector) indexDash(lo, hi int) (dc, d0, d1 int) {
+func (vec *Vector) indexDash(lo, hi int) (dc, d0, d1, cp int) {
 loop:
+	if vec.SrcAt(lo) == ',' {
+		cp = lo
+		return
+	}
 	if vec.SrcAt(lo) == '-' {
 		dc++
 		if dc == 1 {

@@ -127,10 +127,20 @@ func TestParser(t *testing.T) {
 	}
 ]`,
 		},
-		// {
-		// 	hal:    "fr-CA,fr;q=0.8",
-		// 	expect: `[{"code":"fr","region":"CA","quality":1.0},{"code":"fr","quality":0.8}]`,
-		// },
+		{
+			hal: "fr-CA,fr;q=0.8",
+			expect: `[
+	{
+		"code": "fr",
+		"region": "CA",
+		"quality": 0.8
+	},
+	{
+		"code": "fr",
+		"quality": 0.8
+	}
+]`,
+		},
 		// {
 		// 	hal:    "fr-CA,*;q=0.8",
 		// 	expect: `[{"code":"fr","region":"CA","quality":1.0},{"code":"*","quality":0.8}]`,
