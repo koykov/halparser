@@ -30,7 +30,12 @@ func (vec *Vector) beautify(w io.Writer, node *vector.Node, depth int) (err erro
 	switch node.Type() {
 	case vector.TypeNull:
 		_, err = w.Write(btNull)
-	case vector.TypeNum, vector.TypeBool:
+	case vector.TypeNum:
+		num, _ := node.Float()
+		off := vec.BufLen()
+		vec.BufAppendFloatTune(num, 'f', 1, 64)
+		_, err = w.Write(vec.Buf()[off:])
+	case vector.TypeBool:
 		_, err = w.Write(node.ForceBytes())
 	case vector.TypeStr:
 		_, err = w.Write(btQuote)

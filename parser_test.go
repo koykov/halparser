@@ -246,14 +246,37 @@ func TestParser(t *testing.T) {
 	}
 ]`,
 		},
-		// {
-		// 	hal:    "zh-Hant-cn",
-		// 	expect: `[{"code":"zh", script: 'Hant',"region":"cn","quality":1.0}]`,
-		// },
-		// {
-		// 	hal:    "zh-Hant-cn;q=1, zh-cn;q=0.6, zh;q=0.4",
-		// 	expect: `[{"code":"zh", script: 'Hant',"region":"cn","quality":1.0},{"code":"zh","region":"cn","quality":0.6},{"code":"zh","quality":0.4}]`,
-		// },
+		{
+			hal: "zh-Hant-cn",
+			expect: `[
+	{
+		"code": "zh",
+		"script": "Hant",
+		"region": "cn",
+		"quality": 1.0
+	}
+]`,
+		},
+		{
+			hal: "zh-Hant-cn;q=1, zh-cn;q=0.6, zh;q=0.4",
+			expect: `[
+	{
+		"code": "zh",
+		"script": "Hant",
+		"region": "cn",
+		"quality": 1.0
+	},
+	{
+		"code": "zh",
+		"region": "cn",
+		"quality": 0.6
+	},
+	{
+		"code": "zh",
+		"quality": 0.4
+	}
+]`,
+		},
 		// {
 		// 	hal:    "ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7",
 		// 	expect: `[{"code":"ru","region":"RU","quality":0.9},{"code":"en","region":"US","quality":0.8},{"code":"en","quality":0.7}]`,
