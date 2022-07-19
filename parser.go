@@ -103,63 +103,26 @@ func (vec *Vector) parseNode(depth, offset int, qlo, qhi int, root *vector.Node)
 
 		switch dc {
 		case 0:
-			child, j := vec.GetChildWT(node, depth+1, vector.TypeStr)
-			child.Key().Init(bKV, offsetCode, lenCode)
-			child.Value().Init(vec.Src(), offset, qlo-offset)
-			vec.PutNode(j, child)
+			// Add only code.
+			vec.addStrNode(node, depth+1, offsetCode, lenCode, offset, qlo-offset)
 			offset = qhi + 1
 		case 1:
-			child, j := vec.GetChildWT(node, depth+1, vector.TypeStr)
-			child.Key().Init(bKV, offsetCode, lenCode)
-			child.Value().Init(vec.Src(), offset, d0)
-			vec.PutNode(j, child)
+			// Add code and region.
+			vec.addStrNode(node, depth+1, offsetCode, lenCode, offset, d0)
 			offset = d0 + 1
-
-			child, j = vec.GetChildWT(node, depth+1, vector.TypeStr)
-			child.Key().Init(bKV, offsetRegion, lenRegion)
-			child.Value().Init(vec.Src(), offset, qlo-offset)
-			vec.PutNode(j, child)
+			vec.addStrNode(node, depth+1, offsetRegion, lenRegion, offset, qlo-offset)
 			offset = qhi + 1
 		case 2:
-			child, j := vec.GetChildWT(node, depth+1, vector.TypeStr)
-			child.Key().Init(bKV, offsetCode, lenCode)
-			child.Value().Init(vec.Src(), offset, d0)
-			vec.PutNode(j, child)
+			// Add code, script and region.
+			vec.addStrNode(node, depth+1, offsetCode, lenCode, offset, d0)
 			offset = d0 + 1
-
-			child, j = vec.GetChildWT(node, depth+1, vector.TypeStr)
-			child.Key().Init(bKV, offsetScript, lenScript)
-			child.Value().Init(vec.Src(), offset, d1-offset)
-			vec.PutNode(j, child)
+			vec.addStrNode(node, depth+1, offsetScript, lenScript, offset, d1-offset)
 			offset = d1 + 1
-
-			child, j = vec.GetChildWT(node, depth+1, vector.TypeStr)
-			child.Key().Init(bKV, offsetRegion, lenRegion)
-			child.Value().Init(vec.Src(), offset, qlo-offset)
-			vec.PutNode(j, child)
+			vec.addStrNode(node, depth+1, offsetRegion, lenRegion, offset, qlo-offset)
 			offset = qhi + 1
 		}
 
-		// cl := qlo
-		// if d0 != 0 {
-		// 	cl = d0
-		// }
-		// child, j := vec.GetChildWT(node, depth+1, vector.TypeStr)
-		// child.Key().Init(bKV, offsetCode, lenCode)
-		// child.Value().Init(vec.Src(), offset, cl)
-		// vec.PutNode(j, child)
-		// offset = cl + 1
-
-		_, _, _ = dc, d0, d1
-
-		// if d1 > 0 {
-		// 	child, j := vec.GetChildWT(node, depth+1, vector.TypeStr)
-		// 	child.Key().Init(bKV, offsetScript, offsetScript+lenScript)
-		// 	child.Value().Init(vec.Src(), offset, d1)
-		// 	vec.PutNode(j, child)
-		// 	offset = d1 + 1
-		// }
-
+		// Write quality.
 		child, j := vec.GetChildWT(node, depth+1, vector.TypeNum)
 		child.Key().Init(bKV, offsetQuality, lenQuality)
 		if qlo > 0 && qhi > qlo {
@@ -174,6 +137,13 @@ func (vec *Vector) parseNode(depth, offset int, qlo, qhi int, root *vector.Node)
 		break
 	}
 	return offset, nil
+}
+
+func (vec *Vector) addStrNode(root *vector.Node, depth, kpos, klen, vpos, vlen int) {
+	node, j := vec.GetChildWT(root, depth, vector.TypeStr)
+	node.Key().Init(bKV, kpos, klen)
+	node.Value().Init(vec.Src(), vpos, vlen)
+	vec.PutNode(j, node)
 }
 
 func (vec *Vector) skipFmt(offset int) (int, bool) {
