@@ -7,6 +7,10 @@ import (
 	"github.com/koykov/vector"
 )
 
+const (
+	flagSorted = 8
+)
+
 type Vector struct {
 	vector.Vector
 }

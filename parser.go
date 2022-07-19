@@ -76,7 +76,6 @@ func (vec *Vector) parseGeneric(depth, offset int, node *vector.Node) (int, erro
 		var qlo, qhi int
 		if qlo = bytealg.IndexAt(vec.Src()[:nhi], bQt, offset); qlo == -1 {
 			qlo = nhi
-			// } else if qhi = bytealg.IndexAt(vec.Src()[:nhi], bComma, qlo+3); qhi == -1 {
 		} else {
 			qhi = nhi
 		}
