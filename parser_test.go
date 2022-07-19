@@ -277,10 +277,29 @@ func TestParser(t *testing.T) {
 	}
 ]`,
 		},
-		// {
-		// 	hal:    "ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7",
-		// 	expect: `[{"code":"ru","region":"RU","quality":0.9},{"code":"en","region":"US","quality":0.8},{"code":"en","quality":0.7}]`,
-		// },
+		{
+			hal: "ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7",
+			expect: `[
+	{
+		"code": "ru",
+		"region": "RU",
+		"quality": 1.0
+	},
+	{
+		"code": "ru",
+		"quality": 0.9
+	},
+	{
+		"code": "en",
+		"region": "US",
+		"quality": 0.8
+	},
+	{
+		"code": "en",
+		"quality": 0.7
+	}
+]`,
+		},
 	}
 	for _, stg := range stages {
 		t.Run(stg.hal, func(t *testing.T) {
