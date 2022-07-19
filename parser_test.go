@@ -77,10 +77,16 @@ func TestParser(t *testing.T) {
 	}
 ]`,
 		},
-		// {
-		// 	hal:    "en-GB",
-		// 	expect: `[{"code":"en","region":"GB","quality":1.0}]`,
-		// },
+		{
+			hal: "en-GB",
+			expect: `[
+	{
+		"code": "en",
+		"region": "GB",
+		"quality": 1.0
+	}
+]`,
+		},
 		// {
 		// 	hal:    "en-Latin-GB",
 		// 	expect: `[{"code":"en","script":"Latin","region":"GB","quality":1.0}]`,

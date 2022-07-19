@@ -86,6 +86,9 @@ func (vec *Vector) parseGeneric(depth, offset int, node *vector.Node) (int, erro
 }
 
 func (vec *Vector) parseNode(depth, offset int, qlo, qhi int, root *vector.Node) (int, error) {
+	if qhi < qlo {
+		qhi = qlo
+	}
 	for {
 		node, i := vec.GetChildWT(root, depth, vector.TypeObj)
 		node.SetOffset(vec.Index.Len(depth + 1))
@@ -93,31 +96,55 @@ func (vec *Vector) parseNode(depth, offset int, qlo, qhi int, root *vector.Node)
 		if p == -1 {
 			p = vec.SrcLen()
 		}
-		a, b, ok := vec.indexDash(offset, p)
-		if !ok {
+		dc, d0, d1 := vec.indexDash(offset, qlo)
+		if dc > 2 {
 			return offset, ErrTooManyParts
 		}
-		cl := qlo
-		if a != 0 {
-			cl = a
+
+		switch dc {
+		case 0:
+			child, j := vec.GetChildWT(node, depth+1, vector.TypeStr)
+			child.Key().Init(bKV, offsetCode, lenCode)
+			child.Value().Init(vec.Src(), offset, qlo-offset)
+			vec.PutNode(j, child)
+			offset = qhi + 1
+		case 1:
+			child, j := vec.GetChildWT(node, depth+1, vector.TypeStr)
+			child.Key().Init(bKV, offsetCode, lenCode)
+			child.Value().Init(vec.Src(), offset, d0)
+			vec.PutNode(j, child)
+			offset = d0 + 1
+
+			child, j = vec.GetChildWT(node, depth+1, vector.TypeStr)
+			child.Key().Init(bKV, offsetRegion, lenRegion)
+			child.Value().Init(vec.Src(), offset, qlo-offset)
+			vec.PutNode(j, child)
+			offset = qhi + 1
+		case 2:
+			// ...
 		}
-		child, j := vec.GetChildWT(node, depth+1, vector.TypeStr)
-		child.Key().Init(bKV, offsetCode, lenCode)
-		child.Value().Init(vec.Src(), offset, cl)
-		vec.PutNode(j, child)
-		offset = cl + 1
 
-		_, _ = a, b
+		// cl := qlo
+		// if d0 != 0 {
+		// 	cl = d0
+		// }
+		// child, j := vec.GetChildWT(node, depth+1, vector.TypeStr)
+		// child.Key().Init(bKV, offsetCode, lenCode)
+		// child.Value().Init(vec.Src(), offset, cl)
+		// vec.PutNode(j, child)
+		// offset = cl + 1
 
-		// if b > 0 {
+		_, _, _ = dc, d0, d1
+
+		// if d1 > 0 {
 		// 	child, j := vec.GetChildWT(node, depth+1, vector.TypeStr)
 		// 	child.Key().Init(bKV, offsetScript, offsetScript+lenScript)
-		// 	child.Value().Init(vec.Src(), offset, b)
+		// 	child.Value().Init(vec.Src(), offset, d1)
 		// 	vec.PutNode(j, child)
-		// 	offset = b + 1
+		// 	offset = d1 + 1
 		// }
 
-		child, j = vec.GetChildWT(node, depth+1, vector.TypeNum)
+		child, j := vec.GetChildWT(node, depth+1, vector.TypeNum)
 		child.Key().Init(bKV, offsetQuality, lenQuality)
 		if qlo > 0 && qhi > qlo {
 			child.Value().Init(vec.Src(), qlo, qhi)
@@ -145,20 +172,17 @@ loop:
 	goto loop
 }
 
-func (vec *Vector) indexDash(lo, hi int) (a, b int, ok bool) {
-	var c int
-	ok = true
+func (vec *Vector) indexDash(lo, hi int) (dc, d0, d1 int) {
 loop:
 	if vec.SrcAt(lo) == '-' {
-		if c == 0 {
-			a = lo
-		} else if c == 1 {
-			b = lo
+		dc++
+		if dc == 1 {
+			d0 = lo
+		} else if dc == 2 {
+			d1 = lo
 		} else {
-			ok = false
 			return
 		}
-		c++
 	}
 	lo++
 	if lo == hi {
