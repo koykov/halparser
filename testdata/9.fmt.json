@@ -1,0 +1,24 @@
+[
+	{
+		"code": "fr",
+		"region": "CA",
+		"quality": 1.0
+	},
+	{
+		"code": "fr",
+		"quality": 0.8
+	},
+	{
+		"code": "en",
+		"region": "US",
+		"quality": 0.6
+	},
+	{
+		"code": "en",
+		"quality": 0.4
+	},
+	{
+		"code": "*",
+		"quality": 0.1
+	}
+]

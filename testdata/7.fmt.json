@@ -1,0 +1,11 @@
+[
+	{
+		"code": "fr",
+		"region": "CA",
+		"quality": 1.0
+	},
+	{
+		"code": "*",
+		"quality": 0.8
+	}
+]

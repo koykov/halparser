@@ -1,0 +1,17 @@
+[
+	{
+		"code": "zh",
+		"script": "Hant",
+		"region": "cn",
+		"quality": 1.0
+	},
+	{
+		"code": "zh",
+		"region": "cn",
+		"quality": 0.6
+	},
+	{
+		"code": "zh",
+		"quality": 0.4
+	}
+]

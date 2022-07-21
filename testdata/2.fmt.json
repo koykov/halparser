@@ -1,6 +1,8 @@
 [
 	{
 		"code": "en",
+		"script": "Latin",
+		"region": "GB",
 		"quality": 1.0
 	}
 ]

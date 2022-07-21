@@ -1,0 +1,20 @@
+[
+	{
+		"code": "ru",
+		"region": "RU",
+		"quality": 1.0
+	},
+	{
+		"code": "ru",
+		"quality": 0.9
+	},
+	{
+		"code": "en",
+		"region": "US",
+		"quality": 0.8
+	},
+	{
+		"code": "en",
+		"quality": 0.7
+	}
+]
