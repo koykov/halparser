@@ -1,6 +1,7 @@
 # HAL vector
 
-HTTP Accept-Language vector parser.
+HTTP Accept-Language vector parser. Based on [accept-language-parser](https://github.com/opentable/accept-language-parser)
+library, but based on vector parser instead of regexp due to performance reasons and reduce pointers policy.
 
 ## Usage
 
