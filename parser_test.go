@@ -248,6 +248,32 @@ var stages = []stage{
 	},
 }
 
+func loadTestDS() ([]stage, error) {
+	// todo implement me
+	return nil, nil
+}
+
+func TestParserDS(t *testing.T) {
+	stages, err := loadTestDS()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, stg := range stages {
+		t.Run(stg.hal, func(t *testing.T) {
+			var buf bytes.Buffer
+			vec := Acquire()
+			if err := vec.ParseStr(stg.hal); err != nil {
+				t.Error(err)
+				return
+			}
+			_ = vec.Sort().Beautify(&buf)
+			if stg.expect != buf.String() {
+				t.Errorf("expect: %s\ngot: %s", stg.expect, buf.String())
+			}
+		})
+	}
+}
+
 func TestParser(t *testing.T) {
 	for _, stg := range stages {
 		t.Run(stg.hal, func(t *testing.T) {
