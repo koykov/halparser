@@ -2,6 +2,10 @@ package halvector
 
 import (
 	"bytes"
+	"errors"
+	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/koykov/fastconv"
@@ -248,9 +252,50 @@ var stages = []stage{
 	},
 }
 
-func loadTestDS() ([]stage, error) {
-	// todo implement me
-	return nil, nil
+func loadTestDS() (stages []stage, err error) {
+	files, err := filepath.Glob("testdata/*.hal.txt")
+	if err != nil {
+		return nil, err
+	}
+
+	fileExists := func(path string) bool {
+		_, err := os.Stat(path)
+		return err == nil
+	}
+	fileLoad := func(path string) (contents []byte, err error) {
+		if contents, err = os.ReadFile(path); err != nil {
+			return
+		}
+		if len(contents) > 0 && contents[len(contents)-1] == '\n' {
+			contents = contents[:len(contents)-1]
+		}
+		return
+	}
+
+	stages = make([]stage, 0, len(files))
+	for i := 0; i < len(files); i++ {
+		var rawHAL, rawFmt, rawErr []byte
+		if rawHAL, err = fileLoad(files[i]); err != nil {
+			break
+		}
+		if ffmt := strings.Replace(files[i], "hal.txt", "fmt.json", 1); fileExists(ffmt) {
+			if rawFmt, err = fileLoad(ffmt); err != nil {
+				break
+			}
+		}
+		if ferr := strings.Replace(files[i], "hal.txt", "err.txt", 1); fileExists(ferr) {
+			if rawErr, err = fileLoad(ferr); err != nil {
+				break
+			}
+		}
+		stg := stage{
+			hal:    string(rawHAL),
+			expect: string(rawFmt),
+			err:    errors.New(string(rawErr)),
+		}
+		stages = append(stages, stg)
+	}
+	return
 }
 
 func TestParserDS(t *testing.T) {
