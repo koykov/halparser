@@ -11,12 +11,12 @@ vec := halvector.Acquire()
 defer halvector.Release(vec)
 _ = vec.ParseStr(src)
 vec.Sort().Root().Each(func(idx int, node *vector.Node) {
-print(idx, ":")
-println("code:", node.GetString("code"))
-println("script:", node.GetString("script"))
-println("region:", node.GetString("region"))
-q, _ := node.Get("quality").Float()
-println("quality:", q)
+	print(idx, ":")
+	println("code:", node.GetString("code"))
+	println("script:", node.GetString("script"))
+	println("region:", node.GetString("region"))
+	q, _ := node.Get("quality").Float()
+	println("quality:", q)
 })
 ```
 
