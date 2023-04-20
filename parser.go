@@ -86,6 +86,10 @@ func (vec *Vector) parseGeneric(depth, offset int, node *vector.Node) (int, erro
 			return offset, nil
 		}
 		if vec.SrcAt(offset) == ',' {
+			if offset+1 < vec.SrcLen() && vec.SrcAt(offset+1) == ';' {
+				// Detect broken format, see testdata/15.hal.txt for example.
+				return offset, vector.ErrUnexpId
+			}
 			offset++
 		}
 		if offset, eof = vec.skipFmt(offset); eof {
