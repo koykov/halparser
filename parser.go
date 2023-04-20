@@ -62,6 +62,7 @@ func (vec *Vector) parseGeneric(depth, offset int, node *vector.Node) (int, erro
 	var (
 		err error
 		eof bool
+		c   int
 	)
 	for offset < vec.SrcLen() {
 		if offset, eof = vec.skipFmt(offset); eof {
@@ -81,6 +82,11 @@ func (vec *Vector) parseGeneric(depth, offset int, node *vector.Node) (int, erro
 		}
 		if offset, err = vec.parseNode(depth, offset, qlo, qhi, node); err != nil {
 			return offset, err
+		}
+		c++
+		if vec.limit > 0 && c >= vec.limit {
+			// Replace offset to SrcLen to avoid unparsed tail error.
+			return vec.SrcLen(), nil
 		}
 		if offset, eof = vec.skipFmt(offset); eof {
 			return offset, nil
