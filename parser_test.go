@@ -110,3 +110,23 @@ func BenchmarkParser(b *testing.B) {
 		})
 	}
 }
+
+func BenchmarkLimit(b *testing.B) {
+	longHAL, err := os.ReadFile("testdata/very-very-long.hal.txt")
+	if err != nil {
+		b.Fatal(err)
+	}
+	fn := func(b *testing.B, limit int) {
+		b.ReportAllocs()
+		vec := NewVector()
+		for i := 0; i < b.N; i++ {
+			_ = vec.SetLimit(limit).Parse(longHAL)
+			vec.Reset()
+		}
+	}
+	b.Run("no limit", func(b *testing.B) { fn(b, 0) })
+	b.Run("limit 50", func(b *testing.B) { fn(b, 50) })
+	b.Run("limit 10", func(b *testing.B) { fn(b, 10) })
+	b.Run("limit 5", func(b *testing.B) { fn(b, 5) })
+	b.Run("limit 3", func(b *testing.B) { fn(b, 3) })
+}
