@@ -73,6 +73,12 @@ func TestParser(t *testing.T) {
 			var buf bytes.Buffer
 			vec := Acquire()
 			if err := vec.ParseStr(stg.hal); err != nil {
+				if stg.err != nil {
+					if stg.err.Error() != err.Error() {
+						t.Error(err)
+					}
+					return
+				}
 				t.Error(err)
 				return
 			}

@@ -92,6 +92,9 @@ func (vec *Vector) parseGeneric(depth, offset int, node *vector.Node) (int, erro
 			return offset, nil
 		}
 		if vec.SrcAt(offset) == ',' {
+			if offset+1 < vec.SrcLen() && vec.SrcAt(offset+1) == ';' {
+				return offset, vector.ErrUnexpId
+			}
 			offset++
 		}
 		if offset, eof = vec.skipFmt(offset); eof {
