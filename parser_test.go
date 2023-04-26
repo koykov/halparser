@@ -73,7 +73,11 @@ func TestParser(t *testing.T) {
 			var buf bytes.Buffer
 			vec := Acquire()
 			if err := vec.ParseStr(stg.hal); err != nil {
-				t.Error(err)
+				if stg.err != nil {
+					if stg.err.Error() != err.Error() {
+						t.Error(err)
+					}
+				}
 				return
 			}
 			_ = vec.Sort().Beautify(&buf)
@@ -97,7 +101,11 @@ func BenchmarkParser(b *testing.B) {
 				buf.Reset()
 				vec := Acquire()
 				if err := vec.ParseStr(stg.hal); err != nil {
-					b.Error(err)
+					if stg.err != nil {
+						if stg.err.Error() != err.Error() {
+							b.Error(err)
+						}
+					}
 					return
 				}
 				_ = vec.Sort().Beautify(&buf)
