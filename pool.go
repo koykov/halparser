@@ -7,8 +7,8 @@ type Pool struct {
 }
 
 var (
-	P    Pool
-	_, _ = Acquire, Release
+	P       Pool
+	_, _, _ = Acquire, AcquireWithLimit, Release
 )
 
 func (p *Pool) Get() *Vector {
@@ -28,6 +28,10 @@ func (p *Pool) Put(vec *Vector) {
 
 func Acquire() *Vector {
 	return P.Get()
+}
+
+func AcquireWithLimit(limit int) *Vector {
+	return P.Get().SetLimit(limit)
 }
 
 func Release(vec *Vector) {
