@@ -1,8 +1,6 @@
 package halvector
 
 import (
-	"io"
-
 	"github.com/koykov/fastconv"
 	"github.com/koykov/vector"
 )
@@ -18,6 +16,7 @@ type Vector struct {
 
 func NewVector() *Vector {
 	vec := &Vector{}
+	vec.Helper = helper
 	return vec
 }
 
@@ -45,11 +44,6 @@ func (vec *Vector) SetLimit(limit int) *Vector {
 	}
 	vec.limit = limit
 	return vec
-}
-
-func (vec *Vector) Beautify(w io.Writer) error {
-	r := vec.Root()
-	return vec.beautify(w, r, 0)
 }
 
 func (vec *Vector) Reset() {
