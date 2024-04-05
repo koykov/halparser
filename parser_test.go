@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/koykov/fastconv"
+	"github.com/koykov/byteconv"
 )
 
 type stage struct {
@@ -110,7 +110,7 @@ func BenchmarkParser(b *testing.B) {
 				}
 				_ = vec.Sort().Beautify(&buf)
 				exp := buf.Bytes()
-				if !bytes.Equal(fastconv.S2B(stg.expect), exp) {
+				if !bytes.Equal(byteconv.S2B(stg.expect), exp) {
 					b.Errorf("expect: %s\ngot: %s", stg.expect, buf.String())
 				}
 				Release(vec)
