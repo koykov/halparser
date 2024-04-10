@@ -23,9 +23,8 @@ const (
 
 var (
 	// Byte constants.
-	bFmt = []byte(" \t")
-	bQt  = []byte(";q=")
-	bKV  = []byte("codescriptregionquality1.0")
+	bQt = []byte(";q=")
+	bKV = []byte("codescriptregionquality1.0")
 
 	ErrTooManyParts = errors.New("entry contains too many parts")
 )
@@ -35,7 +34,7 @@ func (vec *Vector) parse(s []byte, copy bool) (err error) {
 		vec.Helper = helper
 	}
 
-	s = bytealg.Trim(s, bFmt)
+	s = bytealg.TrimBytesFmt4(s)
 	if err = vec.SetSrc(s, copy); err != nil {
 		return
 	}
@@ -68,18 +67,21 @@ func (vec *Vector) parseGeneric(depth, offset int, node *vector.Node) (int, erro
 		eof bool
 		c   int
 	)
-	for offset < vec.SrcLen() {
-		if offset, eof = vec.skipFmt(offset); eof {
+	src := vec.Src()[offset:]
+	n := len(src)
+	_ = src[n-1]
+	for offset < n {
+		if offset, eof = skipFmtTable(src, n, offset); eof {
 			return offset, vector.ErrUnexpEOF
 		}
 
 		var nhi int
-		if nhi = bytealg.IndexByteAtLUR(vec.Src(), ',', offset); nhi == -1 {
-			nhi = vec.SrcLen()
+		if nhi = bytealg.IndexByteAtBytes(src, ',', offset); nhi == -1 {
+			nhi = n
 		}
 
 		var qlo, qhi int
-		if qlo = bytealg.IndexAt(vec.Src()[:nhi], bQt, offset); qlo == -1 {
+		if qlo = bytealg.IndexAtBytes(src[:nhi], bQt, offset); qlo == -1 {
 			qlo = nhi
 		} else {
 			qhi = nhi
@@ -90,19 +92,19 @@ func (vec *Vector) parseGeneric(depth, offset int, node *vector.Node) (int, erro
 		c++
 		if vec.limit > 0 && c >= vec.limit {
 			// Replace offset to SrcLen to avoid unparsed tail error.
-			return vec.SrcLen(), nil
+			return n, nil
 		}
-		if offset, eof = vec.skipFmt(offset); eof {
+		if offset, eof = skipFmtTable(src, n, offset); eof {
 			return offset, nil
 		}
-		if vec.SrcAt(offset) == ',' {
-			if offset+1 < vec.SrcLen() && vec.SrcAt(offset+1) == ';' {
+		if src[offset] == ',' {
+			if offset+1 < n && src[offset+1] == ';' {
 				// Detect broken format, see testdata/15.hal.txt for example.
 				return offset, vector.ErrUnexpId
 			}
 			offset++
 		}
-		if offset, eof = vec.skipFmt(offset); eof {
+		if offset, eof = skipFmtTable(src, n, offset); eof {
 			return offset, nil
 		}
 	}
@@ -114,6 +116,9 @@ func (vec *Vector) parseNode(depth, offset int, qlo, qhi int, root *vector.Node)
 	if qhi < qlo {
 		qhi = qlo
 	}
+	src := vec.Src()
+	n := len(src)
+	_ = src[n-1]
 	for {
 		if offset == qlo {
 			break
@@ -121,11 +126,11 @@ func (vec *Vector) parseNode(depth, offset int, qlo, qhi int, root *vector.Node)
 
 		node, i := vec.GetChildWT(root, depth, vector.TypeObj)
 		node.SetOffset(vec.Index.Len(depth + 1))
-		p := bytealg.IndexByteAtLUR(vec.Src(), '-', offset)
+		p := bytealg.IndexByteAtBytes(src, '-', offset)
 		if p == -1 {
-			p = vec.SrcLen()
+			p = n
 		}
-		dc, d0, d1 := vec.indexDash(offset, qlo)
+		dc, d0, d1 := indexDash(src, n, offset, qlo)
 		if dc > 2 {
 			return offset, ErrTooManyParts
 		}
@@ -155,7 +160,7 @@ func (vec *Vector) parseNode(depth, offset int, qlo, qhi int, root *vector.Node)
 		child, j := vec.GetChildWT(node, depth+1, vector.TypeNum)
 		child.Key().Init(bKV, offsetQuality, lenQuality)
 		if qlo > 0 && qhi > qlo {
-			child.Value().Init(vec.Src(), qlo+3, qhi-(qlo+3)) // +3 means length of ";q="
+			child.Value().Init(src, qlo+3, qhi-(qlo+3)) // +3 means length of ";q="
 		} else {
 			child.Value().Init(bKV, offsetDefQT, lenDefQT)
 		}
@@ -163,14 +168,14 @@ func (vec *Vector) parseNode(depth, offset int, qlo, qhi int, root *vector.Node)
 
 		vec.PutNode(i, node)
 
-		if offset, eof = vec.skipFmt(offset); eof {
+		if offset, eof = skipFmtTable(src, n, offset); eof {
 			return offset, nil
 		}
 		if offset == qlo {
 			offset = qhi
 			break
 		}
-		if offset, eof = vec.skipFmt(offset); eof {
+		if offset, eof = skipFmtTable(src, n, offset); eof {
 			return offset, nil
 		}
 	}
@@ -184,21 +189,10 @@ func (vec *Vector) addStrNode(root *vector.Node, depth, kpos, klen, vpos, vlen i
 	vec.PutNode(j, node)
 }
 
-func (vec *Vector) skipFmt(offset int) (int, bool) {
+func indexDash(src []byte, n, lo, hi int) (dc, d0, d1 int) {
+	_ = src[n-1]
 loop:
-	if offset >= vec.SrcLen() {
-		return offset, true
-	}
-	if c := vec.SrcAt(offset); c != bFmt[0] && c != bFmt[1] {
-		return offset, false
-	}
-	offset++
-	goto loop
-}
-
-func (vec *Vector) indexDash(lo, hi int) (dc, d0, d1 int) {
-loop:
-	if vec.SrcAt(lo) == '-' {
+	if src[lo] == '-' {
 		dc++
 		if dc == 1 {
 			d0 = lo
