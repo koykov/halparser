@@ -27,11 +27,13 @@ var (
 	bKV = []byte("codescriptregionquality1.0")
 
 	ErrTooManyParts = errors.New("entry contains too many parts")
+	errBadInit      = errors.New("bad vector initialization, use halvector.NewVector() or halvector.Acquire()")
 )
 
 func (vec *Vector) parse(s []byte, copy bool) (err error) {
-	if vec.Helper == nil {
-		vec.Helper = helper
+	if !vec.init {
+		err = errBadInit
+		return
 	}
 
 	s = bytealg.TrimBytesFmt4(s)
