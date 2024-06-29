@@ -12,10 +12,11 @@ const (
 type Vector struct {
 	vector.Vector
 	limit int
+	init  bool
 }
 
 func NewVector() *Vector {
-	vec := &Vector{}
+	vec := &Vector{init: true}
 	vec.Helper = helper
 	return vec
 }
