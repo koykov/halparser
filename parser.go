@@ -31,7 +31,7 @@ var (
 )
 
 func (vec *Vector) parse(s []byte, copy bool) (err error) {
-	if !vec.init {
+	if !vec.CheckBit(vector.FlagInit) {
 		err = errBadInit
 		return
 	}
@@ -43,7 +43,7 @@ func (vec *Vector) parse(s []byte, copy bool) (err error) {
 
 	offset := 0
 	// Create root node and register it.
-	root, i := vec.GetNodeWT(0, vector.TypeArr)
+	root, i := vec.AcquireNodeWithType(0, vector.TypeArray)
 	root.SetOffset(vec.Index.Len(1))
 
 	// Parse source data.
@@ -52,7 +52,7 @@ func (vec *Vector) parse(s []byte, copy bool) (err error) {
 		vec.SetErrOffset(offset)
 		return err
 	}
-	vec.PutNode(i, root)
+	vec.ReleaseNode(i, root)
 
 	// Check unparsed tail.
 	if offset < vec.SrcLen() {
@@ -126,7 +126,7 @@ func (vec *Vector) parseNode(depth, offset int, qlo, qhi int, root *vector.Node)
 			break
 		}
 
-		node, i := vec.GetChildWT(root, depth, vector.TypeObj)
+		node, i := vec.AcquireChildWithType(root, depth, vector.TypeObject)
 		node.SetOffset(vec.Index.Len(depth + 1))
 		p := bytealg.IndexByteAtBytes(src, '-', offset)
 		if p == -1 {
@@ -159,16 +159,16 @@ func (vec *Vector) parseNode(depth, offset int, qlo, qhi int, root *vector.Node)
 		}
 
 		// Write quality.
-		child, j := vec.GetChildWT(node, depth+1, vector.TypeNum)
+		child, j := vec.AcquireChildWithType(node, depth+1, vector.TypeNumber)
 		child.Key().Init(bKV, offsetQuality, lenQuality)
 		if qlo > 0 && qhi > qlo {
 			child.Value().Init(src, qlo+3, qhi-(qlo+3)) // +3 means length of ";q="
 		} else {
 			child.Value().Init(bKV, offsetDefQT, lenDefQT)
 		}
-		vec.PutNode(j, child)
+		vec.ReleaseNode(j, child)
 
-		vec.PutNode(i, node)
+		vec.ReleaseNode(i, node)
 
 		if offset, eof = skipFmtTable(src, n, offset); eof {
 			return offset, nil
@@ -185,10 +185,10 @@ func (vec *Vector) parseNode(depth, offset int, qlo, qhi int, root *vector.Node)
 }
 
 func (vec *Vector) addStrNode(root *vector.Node, depth, kpos, klen, vpos, vlen int) {
-	node, j := vec.GetChildWT(root, depth, vector.TypeStr)
+	node, j := vec.AcquireChildWithType(root, depth, vector.TypeString)
 	node.Key().Init(bKV, kpos, klen)
 	node.Value().Init(vec.Src(), vpos, vlen)
-	vec.PutNode(j, node)
+	vec.ReleaseNode(j, node)
 }
 
 func indexDash(src []byte, n, lo, hi int) (dc, d0, d1 int) {
