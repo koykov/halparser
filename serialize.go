@@ -29,17 +29,17 @@ func serialize(w io.Writer, node *vector.Node, depth int, indent bool) (err erro
 	switch node.Type() {
 	case vector.TypeNull:
 		_, err = w.Write(btNull)
-	case vector.TypeNum, vector.TypeBool:
+	case vector.TypeNumber, vector.TypeBool:
 		raw := node.ForceBytes()
 		_, _ = w.Write(raw)
 		if bytes.IndexByte(raw, '.') == -1 {
 			_, _ = w.Write(btDot0)
 		}
-	case vector.TypeStr:
+	case vector.TypeString:
 		_, err = w.Write(btQuote)
 		_, err = w.Write(node.RawBytes())
 		_, err = w.Write(btQuote)
-	case vector.TypeArr:
+	case vector.TypeArray:
 		if node.Limit() == 0 {
 			_, err = w.Write(btArrE)
 		} else {
@@ -67,7 +67,7 @@ func serialize(w io.Writer, node *vector.Node, depth int, indent bool) (err erro
 			}
 			_, err = w.Write(btArrC)
 		}
-	case vector.TypeObj:
+	case vector.TypeObject:
 		if node.Limit() == 0 {
 			_, err = w.Write(btObjE)
 		} else {

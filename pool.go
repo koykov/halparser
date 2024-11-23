@@ -10,10 +10,7 @@ type Pool struct {
 	p sync.Pool
 }
 
-var (
-	P          Pool
-	_, _, _, _ = Acquire, AcquireWithLimit, Release, ReleaseNC
-)
+var p Pool
 
 // Get old vector from the pool or create new one.
 func (p *Pool) Get() *Vector {
@@ -34,21 +31,23 @@ func (p *Pool) Put(vec *Vector) {
 
 // Acquire returns vector from default pool instance.
 func Acquire() *Vector {
-	return P.Get()
+	return p.Get()
 }
 
 // AcquireWithLimit returns vector with given limit.
 func AcquireWithLimit(limit int) *Vector {
-	return P.Get().SetLimit(limit)
+	return p.Get().SetLimit(limit)
 }
 
 // Release puts vector back to default pool instance.
 func Release(vec *Vector) {
-	P.Put(vec)
+	p.Put(vec)
 }
 
 // ReleaseNC puts vector back to pool with enforced no-clear flag.
 func ReleaseNC(vec *Vector) {
 	vec.SetBit(vector.FlagNoClear, true)
-	P.Put(vec)
+	p.Put(vec)
 }
+
+var _, _, _, _ = Acquire, AcquireWithLimit, Release, ReleaseNC
